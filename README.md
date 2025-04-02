@@ -15,7 +15,7 @@ The architecture is divided into three layers:
 - **MCU Used**: ESP32
 - **Input**:
   - Temperature/Humidity Sensor: SHT4X
-  - Light Intensity Sensor: HC-SR501
+  - Light Intensity Sensor: 
   - PIR Sensor: HC-SR501
 - **Output Control**:
   - Servo for Curtain Control
@@ -31,7 +31,7 @@ The architecture is divided into three layers:
   - Maintains historical data (curtain and LED state, user preferences collected from the front end).
 - **Hong Kong Observatory API**:
   - Provides sunrise and sunset times for intelligent automation.
-- **AI**:
+- **Artificial Intelligence**:
   - Uses reinforcement learning to control curtain and light based on occupancy data.
   - Makes predictions to optimize appliance settings.
 
@@ -40,7 +40,7 @@ The architecture is divided into three layers:
 - **Current Curtain and LED Status**: Displays real-time status of appliances.
 - **Current Sensor Data**: Shows live sensor readings.
 - **Historical Data (Pattern) / Data Visualization (Grafana)**: Visualizes long-term trends and patterns.
-- **HKO Information**: Displays sunrise and sunset data from the Hong Kong Observatory.
+- **HKO Information**: Displays sunrise and sunset data and other data from the Hong Kong Observatory.
 - **AI Suggestion**: Provides recommendations based on AI predictions.
 
 ## Features
