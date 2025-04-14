@@ -13,16 +13,14 @@
 #define LED_PIN 26
 #define SERVO_PIN 27
 
-// WiFi Enterprise configuration
+// WiFi Enterprise configuration (for PolyUWAN)
 const char* ssid = "PolyUWAN";
 const char* wifi_username = "YOUR_POLYU_USERNAME"; // e.g., student ID
 const char* wifi_password = "YOUR_POLYU_PASSWORD"; // Your PolyU WiFi password
 
-// MQTT configuration
-const char* mqtt_server = "MQTT_BROKER_IP";
+// MQTT configuration (no authentication needed)
+const char* mqtt_server = "MQTT_BROKER_IP"; // Replace with your broker IP
 const int mqtt_port = 1883;
-const char* mqtt_user = "MQTT_USERNAME";
-const char* mqtt_pass = "MQTT_PASSWORD";
 
 // MQTT topics
 const char* topic_temp = "esp32/sensors/temperature";
@@ -33,16 +31,12 @@ const char* topic_led = "esp32/actuators/led";
 const char* topic_servo = "esp32/actuators/servo";
 const char* topic_servo_status = "esp32/status/servo";
 
-// Function prototype
-bool isNumeric(String str);
-
 // Initialize components
 DHT dht(DHT_PIN, DHT_TYPE);
 Servo myServo;
 bool ledState = LOW;
 int servoAngle = 0;
 
-// Network clients
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -52,17 +46,16 @@ void setup_wifi() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  // For enterprise networks like PolyUWAN, we need special configuration
-  WiFi.disconnect(true);  // Disconnect from any previous connection
-  WiFi.mode(WIFI_STA);   // Set to station mode
+  // Special configuration for enterprise network
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_STA);
   
-  // This is the key part for enterprise networks
   esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)wifi_username, strlen(wifi_username));
   esp_wifi_sta_wpa2_ent_set_username((uint8_t *)wifi_username, strlen(wifi_username));
   esp_wifi_sta_wpa2_ent_set_password((uint8_t *)wifi_password, strlen(wifi_password));
   esp_wifi_sta_wpa2_ent_enable();
 
-  WiFi.begin(ssid); // For enterprise network, password is handled differently
+  WiFi.begin(ssid); // No password parameter for enterprise network
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -78,7 +71,8 @@ void setup_wifi() {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect("ESP32Client", mqtt_user, mqtt_pass)) {
+    // Connect without username/password
+    if (client.connect("ESP32Client")) {
       Serial.println("connected");
       client.subscribe(topic_led);
       client.subscribe(topic_servo);
