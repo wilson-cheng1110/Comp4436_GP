@@ -1,0 +1,13 @@
+Prerequisites : install Ubuntu in Windows
+
+1. sudo apt update
+2. sudo apt upgrade
+3. curl -fsSL https://raw.githubusercontent.com/SensorsIot/IOTstack/master/install.sh | bash
+4. sudo shutdown -r now OR manually restart your pc, afterwards...
+5. cd IOTstack/
+6. ./menu.sh
+7. Build Stack : check grafana, influxdb, mosquitto, nodered, portrainer-ce, python. Press enter.
+8. Docker Commands : Start stack
+9. Quit the IOTstack, 'docker ps' check if 6 containers running
+10. 'ifconfig' , look for eth0's inet address
+HAVENT FINISH BY THE FUCKING WAY 
