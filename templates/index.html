@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Control</title>
+    <style>
+        /* ... (Keep all existing CSS styles exactly the same) ... */
+        body {
+            font-family: sans-serif;
+            max-width: 1300px; /* Slightly wider */
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: grid;
+            /* Adjust minmax if dashboards need more width */
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); /* Slightly wider min */
+            gap: 20px;
+        }
+        .card {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* Ensure cards don't shrink content too much */
+            overflow: hidden; /* Hide potential iframe scrollbars if content slightly overflows */
+            display: flex; /* Use flexbox for better content control */
+            flex-direction: column; /* Stack title and content vertically */
+        }
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 15px; /* Add space below title */
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.2em;
+            flex-shrink: 0; /* Prevent title from shrinking */
+        }
+        .card-content {
+             flex-grow: 1; /* Allow content to fill space */
+             overflow-y: auto; /* Add scroll if content overflows vertically */
+        }
+
+        .control-section button {
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9em;
+        }
+        .led-on { background-color: #4CAF50; }
+        .led-off { background-color: #f44336; }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px; /* More space */
+            margin-bottom: 10px;
+        }
+        .slider-container label {
+            flex-shrink: 0; /* Prevent label from shrinking */
+        }
+        .slider-container input[type="range"] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        .slider-container span {
+            min-width: 35px; /* Ensure space for 3 digits + degree */
+            text-align: right;
+        }
+        .status-item, .ai-item, .hko-item {
+            margin-bottom: 8px;
+            font-size: 0.95em; /* Slightly larger font */
+        }
+        .status-item strong, .ai-item strong, .hko-item strong {
+            display: inline-block;
+            min-width: 110px; /* Adjust alignment */
+            color: #333;
+        }
+        .status-item span, .ai-item span, .hko-item span {
+             color: #555;
+        }
+        #hko-icon img {
+             vertical-align: middle;
+             margin-left: 5px;
+        }
+        #last-updated {
+            margin-top: 5px; /* Less space */
+            margin-bottom: 20px; /* More space below */
+            font-size: 0.9em;
+            color: #555;
+            text-align: center;
+        }
+        .error {
+            color: #d9534f; /* Softer red */
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        #control-status {
+             margin-top: 10px;
+             font-size: 0.9em;
+             min-height: 1.2em; /* Prevent layout jump */
+        }
+        .status-ok { color: #5cb85c; }
+        .status-error { color: #d9534f; }
+        .status-pending { color: #f0ad4e; }
+
+        /* Style for Grafana iframes */
+        .grafana-iframe {
+            border: none; /* Same as frameborder=0 */
+            width: 100%;
+            /* Adjust height as needed, make it responsive within flex */
+            min-height: 250px; /* Minimum height */
+            flex-grow: 1; /* Allow iframe to grow */
+            display: block; /* Ensure it takes block layout */
+        }
+
+        /* Add specific class for Grafana cards if needed */
+        .grafana-card .card-content {
+             padding: 0; /* Remove padding if iframe should touch edges */
+        }
+         .grafana-card h2 {
+              margin-bottom: 10px; /* Less space if title is above iframe */
+         }
+    </style>
+</head>
+<body>
+
+    <h1>Smart Home Dashboard</h1>
+    <div id="last-updated">Loading...</div>
+
+    <div class="container">
+
+        <!-- Sensor Status Card -->
+        <div class="card">
+            <h2>Sensor Status</h2>
+            <div class="card-content">
+                <div class="status-item"><strong>Timestamp:</strong> <span id="sensor-time">N/A</span></div>
+                <div class="status-item"><strong>Temperature:</strong> <span id="temperature-value">N/A</span> °C</div>
+                <div class="status-item"><strong>Humidity:</strong> <span id="humidity-value">N/A</span> %</div>
+                <div class="status-item"><strong>Brightness:</strong> <span id="brightness-value">N/A</span></div>
+                <div class="status-item"><strong>Light State:</strong> <span id="light-state-value">N/A</span></div>
+                <div class="status-item"><strong>Occupancy:</strong> <span id="occupancy-value">N/A</span></div>
+                <div class="status-item"><strong>LED State:</strong> <span id="led-state-value">N/A</span></div>
+                <div class="status-item"><strong>Curtain Status:</strong> <span id="curtain-status-value">N/A</span></div>
+                <div class="status-item"><strong>Servo Angle:</strong> <span id="servo-angle-value">N/A</span> °</div>
+                 <div class="status-item"><strong class="error">Error:</strong> <span id="sensor-error" class="error"></span></div>
+            </div>
+        </div>
+
+        <!-- AI Suggestions Card -->
+        <div class="card">
+            <h2>AI Suggestions</h2>
+             <div class="card-content">
+                <div class="ai-item"><strong>Suggested LED:</strong> <span id="ai-led-suggestion">N/A</span></div>
+                <div class="ai-item"><strong>Suggested Curtain:</strong> <span id="ai-curtain-suggestion">N/A</span></div>
+             </div>
+        </div>
+
+        <!-- Controls Card -->
+        <div class="card control-section">
+            <h2>Manual Controls</h2>
+             <div class="card-content">
+                <div>
+                    <strong>LED Control:</strong>
+                    <button id="led-on-btn" class="led-on">Turn ON</button>
+                    <button id="led-off-btn" class="led-off">Turn OFF</button>
+                </div>
+                <div class="slider-container">
+                    <label for="servo-slider"><strong>Curtain Angle:</strong></label>
+                    <input type="range" id="servo-slider" min="0" max="180" value="90" step="1">
+                    <span id="servo-slider-value">90</span>°
+                </div>
+                <div id="control-status"></div> <!-- Feedback area -->
+            </div>
+        </div>
+
+         <!-- HKO Weather Card -->
+        <div class="card">
+            <h2>HKO Weather</h2>
+             <div class="card-content" id="hko-data">Loading weather...</div>
+        </div>
+
+        <!-- Grafana Dashboard Cards - START -->
+        <!-- Card 1: Grafana Panel 4 (Temperature?) -->
+        <div class="card grafana-card">
+            <h2>Grafana: Curtain</h2> <!-- Customize Title -->
+            <div class="card-content">
+                <iframe
+                    src="http://localhost:3000/d-solo/dejafrw782680f/temperature?orgId=1&refresh=10s&from=now-1h&to=now&panelId=4&kiosk=tv"
+                    class="grafana-iframe"
+                    title="Grafana Panel: Temperature">
+                </iframe>
+                <!-- Notes:
+                     - Changed from/to to relative time "now-1h" (last 1 hour)
+                     - Added &refresh=10s for auto-refresh
+                     - Added &kiosk=tv for cleaner view (optional, remove if you want Grafana menus)
+                     - Removed &timezone=browser (kiosk mode handles this)
+                     - Removed &__feature.dashboardSceneSolo
+                     - Kept panelId=4
+                -->
+            </div>
+        </div>
+
+        <!-- Card 2: Grafana Panel 3 (Humidity?) -->
+        <div class="card grafana-card">
+            <h2>Grafana: Brightness</h2> <!-- Customize Title -->
+             <div class="card-content">
+                <iframe
+                    src="http://localhost:3000/d-solo/dejafrw782680f/temperature?orgId=1&refresh=10s&from=now-1h&to=now&panelId=3&kiosk=tv"
+                    class="grafana-iframe"
+                    title="Grafana Panel: Humidity">
+                </iframe>
+                <!-- Applied same changes as above, using panelId=3 -->
+             </div>
+        </div>
+
+        <!-- Card 3: Grafana Panel 2 (Brightness?) -->
+        <div class="card grafana-card">
+            <h2>Grafana: Temperature</h2> <!-- Customize Title -->
+             <div class="card-content">
+                <iframe
+                    src="http://localhost:3000/d-solo/dejafrw782680f/temperature?orgId=1&refresh=10s&from=now-1h&to=now&panelId=2&kiosk=tv"
+                    class="grafana-iframe"
+                    title="Grafana Panel: Brightness">
+                </iframe>
+                <!-- Applied same changes as above, using panelId=2 -->
+             </div>
+        </div>
+
+        <!-- Card 4: Grafana Panel 1 (Occupancy?) -->
+        <div class="card grafana-card">
+            <h2>Grafana: Humidity</h2> <!-- Customize Title -->
+             <div class="card-content">
+                <iframe
+                    src="http://localhost:3000/d-solo/dejafrw782680f/temperature?orgId=1&refresh=10s&from=now-1h&to=now&panelId=1&kiosk=tv"
+                    class="grafana-iframe"
+                    title="Grafana Panel: Occupancy">
+                </iframe>
+                <!-- Applied same changes as above, using panelId=1 -->
+             </div>
+        </div>
+        <!-- Grafana Dashboard Cards - END -->
+
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const ledOnBtn = document.getElementById('led-on-btn');
+        const ledOffBtn = document.getElementById('led-off-btn');
+        const servoSlider = document.getElementById('servo-slider');
+        const servoSliderValue = document.getElementById('servo-slider-value');
+        const controlStatusEl = document.getElementById('control-status');
+        const lastUpdatedEl = document.getElementById('last-updated');
+
+        // Sensor Data Span References
+        const sensorTimeEl = document.getElementById('sensor-time');
+        const temperatureValueEl = document.getElementById('temperature-value');
+        const humidityValueEl = document.getElementById('humidity-value');
+        const brightnessValueEl = document.getElementById('brightness-value');
+        const lightStateValueEl = document.getElementById('light-state-value');
+        const occupancyValueEl = document.getElementById('occupancy-value');
+        const ledStateValueEl = document.getElementById('led-state-value');
+        const curtainStatusValueEl = document.getElementById('curtain-status-value');
+        const servoAngleValueEl = document.getElementById('servo-angle-value');
+        const sensorErrorEl = document.getElementById('sensor-error'); // Span for sensor error
+
+        // AI Suggestion Span References
+        const aiLedSuggestionEl = document.getElementById('ai-led-suggestion');
+        const aiCurtainSuggestionEl = document.getElementById('ai-curtain-suggestion');
+
+        // HKO Data Div Reference
+        const hkoDataEl = document.getElementById('hko-data');
+
+        // --- Control Status Helper ---
+        function setControlStatus(message, type = 'pending') {
+             controlStatusEl.textContent = message;
+             controlStatusEl.className = `status-${type}`; // Use classes for styling
+        }
+
+        // --- Control Functions ---
+        async function controlLed(state) {
+            setControlStatus(`Sending LED ${state.toUpperCase()} command...`, 'pending');
+            ledOnBtn.disabled = true; // Disable buttons during request
+            ledOffBtn.disabled = true;
+            try {
+                const response = await fetch(`/control/led/${state}`, { method: 'POST' });
+                const result = await response.json(); // Try parsing JSON regardless of status for error message
+                if (!response.ok) {
+                    // Throw error with message from backend if available, otherwise standard HTTP message
+                    throw new Error(result.message || `HTTP error! Status: ${response.status}`);
+                }
+                setControlStatus(`LED ${state.toUpperCase()} command successful.`, 'ok');
+                // Optionally update status immediately after control (slight delay)
+                setTimeout(updateStatus, 500);
+            } catch (error) {
+                console.error('Error controlling LED:', error);
+                setControlStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                 ledOnBtn.disabled = false; // Re-enable buttons
+                 ledOffBtn.disabled = false;
+                 // Clear status message after a few seconds
+                 setTimeout(() => { if(controlStatusEl.className !== 'status-pending') setControlStatus(''); }, 3000);
+            }
+        }
+
+        async function controlServo(angle) {
+            setControlStatus(`Sending Servo command (angle: ${angle})...`, 'pending');
+            servoSlider.disabled = true; // Disable slider during request
+            try {
+                // Ensure angle is sent as part of the query string for a POST request
+                const response = await fetch(`/control/servo?angle=${angle}`, { method: 'POST' });
+                 const result = await response.json();
+                 if (!response.ok) {
+                    throw new Error(result.message || `HTTP error! Status: ${response.status}`);
+                }
+                setControlStatus(`Servo command successful (angle: ${angle}).`, 'ok');
+                 // Optionally update status immediately after control
+                 setTimeout(updateStatus, 500);
+            } catch (error) {
+                console.error('Error controlling Servo:', error);
+                setControlStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                servoSlider.disabled = false; // Re-enable slider
+                // Clear status message after a few seconds
+                setTimeout(() => { if(controlStatusEl.className !== 'status-pending') setControlStatus(''); }, 3000);
+            }
+        }
+
+        // --- Helper to safely update text content ---
+        function updateText(element, value, defaultValue = 'N/A') {
+            if (element) {
+                element.textContent = (value !== null && value !== undefined && value !== '') ? value : defaultValue;
+            }
+        }
+
+         // --- Update Status Function ---
+         async function updateStatus() {
+             console.log("Fetching status..."); // Log start of update
+             try {
+                 const response = await fetch('/status');
+                 if (!response.ok) {
+                     const errorText = await response.text(); // Get error text if possible
+                     throw new Error(`HTTP error fetching status: ${response.status} - ${errorText}`);
+                 }
+                 const data = await response.json();
+                 console.log("Status data received:", data); // Log received data
+
+                 // --- Update Sensor Data display ---
+                 const sensorData = data.sensorData || {};
+                 if (sensorData.error) {
+                     console.error("Sensor data error:", sensorData.error);
+                     sensorErrorEl.textContent = sensorData.error; // Show error in dedicated span
+                     // Clear other sensor fields or set to N/A explicitly
+                     updateText(sensorTimeEl, null);
+                     updateText(temperatureValueEl, null);
+                     updateText(humidityValueEl, null);
+                     updateText(brightnessValueEl, null);
+                     updateText(lightStateValueEl, null);
+                     updateText(occupancyValueEl, null);
+                     updateText(ledStateValueEl, null);
+                     updateText(curtainStatusValueEl, null);
+                     updateText(servoAngleValueEl, null);
+                 } else {
+                     sensorErrorEl.textContent = ''; // Clear previous errors
+                     updateText(sensorTimeEl, sensorData.time);
+                     updateText(temperatureValueEl, sensorData.temperature);
+                     updateText(humidityValueEl, sensorData.humidity);
+                     updateText(brightnessValueEl, sensorData.brightness_raw);
+                     updateText(lightStateValueEl, sensorData.light_state);
+                     updateText(occupancyValueEl, sensorData.occupancy);
+                     updateText(ledStateValueEl, sensorData.led_state);
+                     updateText(curtainStatusValueEl, sensorData.curtain_status);
+                     updateText(servoAngleValueEl, sensorData.servo_angle);
+                 }
+
+
+                 // --- Update AI Suggestions ---
+                 const aiSuggestion = data.aiSuggestion || {};
+                 updateText(aiLedSuggestionEl, aiSuggestion.led);
+                 updateText(aiCurtainSuggestionEl, aiSuggestion.curtain);
+
+                 // --- Update HKO Weather ---
+                 const weather = data.hkoWeather || {};
+                  if (weather.error) {
+                      console.error("HKO weather error:", weather.error);
+                      hkoDataEl.innerHTML = `<div class="error">${weather.error}</div>`;
+                  } else {
+                      let hkoHtml = '';
+                      try {
+                          // Update Time
+                          hkoHtml += `<div class="hko-item"><strong>Update Time:</strong> <span>${weather.updateTime ? new Date(weather.updateTime).toLocaleString() : 'N/A'}</span></div>`;
+
+                          // Temperature (handle potential array and structure - *MODIFIED*)
+                          let temps = 'N/A';
+                          // Check if data exists and is a non-empty array
+                          if (weather.temperature && weather.temperature.data && Array.isArray(weather.temperature.data) && weather.temperature.data.length > 0) {
+                             const firstStation = weather.temperature.data[0]; // Get the first station's data
+                             // Check if the first station has the required properties
+                             if (firstStation && firstStation.place && firstStation.value !== undefined && firstStation.unit) {
+                                 temps = `${firstStation.place}: ${firstStation.value}°${firstStation.unit}`; // Format the string for only the first station
+                             }
+                          }
+                          hkoHtml += `<div class="hko-item"><strong>Temperature:</strong> <span>${temps}</span></div>`; // Add the (potentially single) temperature string
+
+                          // Humidity (handle potential structure)
+                          let hum = 'N/A';
+                          if (weather.humidity && weather.humidity.data && Array.isArray(weather.humidity.data) && weather.humidity.data.length > 0) {
+                             hum = `${weather.humidity.data[0]?.value || 'N/A'}%`;
+                          }
+                          hkoHtml += `<div class="hko-item"><strong>Humidity:</strong> <span>${hum}</span></div>`;
+
+                          // Weather Icon
+                          if (weather.icon && Array.isArray(weather.icon) && weather.icon.length > 0) {
+                              hkoHtml += `<div id="hko-icon" class="hko-item"><strong>Icon:</strong> <span><img src="https://www.hko.gov.hk/images/wxicon/pic${weather.icon[0]}.png" alt="Weather Icon ${weather.icon[0]}" height="30"></span></div>`;
+                          } else {
+                               hkoHtml += `<div class="hko-item"><strong>Icon:</strong> <span>N/A</span></div>`;
+                          }
+
+                          // Warnings
+                          if (weather.warningMessage && Array.isArray(weather.warningMessage) && weather.warningMessage.length > 0) {
+                             hkoHtml += `<div class="hko-item error"><strong>Warnings:</strong> ${weather.warningMessage.join(', ')}</div>`;
+                          }
+                           hkoDataEl.innerHTML = hkoHtml;
+                      } catch (parseError) {
+                           console.error("Error parsing HKO weather data:", parseError, weather);
+                           hkoDataEl.innerHTML = `<div class="error">Error displaying weather data.</div>`;
+                      }
+                  }
+
+
+                 // --- Update Last Updated Time ---
+                 updateText(lastUpdatedEl, `Last Updated: ${data.currentTimeLocal}`, 'Loading...');
+                 lastUpdatedEl.style.color = '#555'; // Reset color on success
+
+             } catch (error) {
+                 console.error("Error fetching or processing status:", error);
+                 lastUpdatedEl.textContent = `Error updating status: ${error.message}`;
+                 lastUpdatedEl.style.color = 'red'; // Indicate error
+                 // Clear data fields on major fetch error
+                 sensorErrorEl.textContent = 'Failed to fetch status from server.';
+             }
+         }
+
+        // --- Event Listeners ---
+        ledOnBtn.addEventListener('click', () => controlLed('on'));
+        ledOffBtn.addEventListener('click', () => controlLed('off'));
+
+        servoSlider.addEventListener('input', () => {
+            // Update the displayed value in real-time as the slider moves
+            servoSliderValue.textContent = servoSlider.value;
+        });
+
+        // Send the command when the user finishes adjusting the slider
+        servoSlider.addEventListener('change', () => {
+            controlServo(servoSlider.value);
+        });
+         // Add touchend for mobile devices as 'change' might not fire reliably
+        servoSlider.addEventListener('touchend', () => {
+             controlServo(servoSlider.value);
+        }, { passive: true }); // Use passive listener for better scroll performance
+
+
+        // --- Initial Load and Periodic Update ---
+        const POLLING_INTERVAL_SECONDS = 10; // Define polling interval for JS (e.g., 10 seconds)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded and parsed. Initializing...");
+            servoSliderValue.textContent = servoSlider.value; // Set initial slider value display
+            updateStatus(); // Load status immediately on page load
+            // Set interval for periodic updates
+            setInterval(updateStatus, POLLING_INTERVAL_SECONDS * 1000);
+            console.log(`Status polling started every ${POLLING_INTERVAL_SECONDS} seconds.`);
+        });
+
+    </script>
+
+</body>
+</html>
