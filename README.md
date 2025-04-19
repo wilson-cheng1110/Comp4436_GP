@@ -14,7 +14,7 @@ The architecture is divided into three layers:
 ### 1. Edge
 - **MCU Used**: ESP32
 - **Input**:
-  - Temperature/Humidity Sensor: SHT4X
+  - Temperature/Humidity Sensor: DHT11
   - Light Intensity Sensor: 
   - PIR Sensor: HC-SR501
 - **Output Control**:
@@ -23,17 +23,24 @@ The architecture is divided into three layers:
 - **Functionality**: Collects real-time sensor data (temperature, humidity, light intensity, motion) and sends it to the cloud via MQTT. Executes commands received from the cloud to control the curtain and LED.
 
 ### 2. Cloud
-- **MQTT Broker**: Mosquitto
+- **MQTT Broker**: Mqtt server broker
   - Handles MQTT communication between Edge and Cloud.
   - Transmits commands and receives sensor data.
+- **NodeRed**
+  - format data from mqtt broker to influx DB.
 - **InfluxDB**:
   - Stores real-time sensor data (temperature, humidity, light, motion).
   - Maintains historical data (curtain and LED state, user preferences collected from the front end).
+- **Grafana**
+  - Provide visualisation to the sensor data past trend.
 - **Hong Kong Observatory API**:
   - Provides sunrise and sunset times for intelligent automation.
 - **Artificial Intelligence**:
   - Uses reinforcement learning to control curtain and light based on occupancy data.
   - Makes predictions to optimize appliance settings.
+- **Python**
+  - Host backend and sends command to esp32 through http
+    
 
 ### 3. Front End
 - **Buttons for Controlling Curtain and LED**: Allows manual override of automation.
@@ -53,7 +60,7 @@ The architecture is divided into three layers:
 ## Prerequisites
 - **Hardware**:
   - ESP32 microcontroller
-  - SHT4X temperature/humidity sensor
+  - DHT11 temperature/humidity sensor
   - HC-SR501 PIR motion sensor
   - Light intensity sensor (e.g., LDR)
   - Servo motor
@@ -64,7 +71,7 @@ The architecture is divided into three layers:
   - Mosquitto MQTT Broker
   - InfluxDB
   - Grafana
-  - Node.js (for front-end development, optional)
+  - HTML,CSS,JS
 - **Libraries**:
   - Arduino: `PubSubClient`, `Adafruit_SHT4X`, `Servo`
   - Python: `paho-mqtt`, `influxdb-client`, `requests`, `flask`
