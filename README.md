@@ -62,8 +62,9 @@ The architecture is divided into three layers:
   - LED
 - **Software**:
   - Arduino IDE (for ESP32 programming)
-  - Python 3.7+
+  - Python 3.12.4
   - Mosquitto MQTT Broker
+  - Node-Red
   - InfluxDB
   - Grafana
   - Node.js (for front-end development, optional)
