@@ -55,35 +55,34 @@ The architecture is divided into three layers:
 ## Prerequisites
 - **Hardware**:
   - ESP32 microcontroller
-  - SHT4X temperature/humidity sensor
+  - DHT11 temperature/humidity sensor
   - HC-SR501 PIR motion sensor
   - Light intensity sensor (e.g., LDR)
   - Servo motor
   - LED
 - **Software**:
   - Arduino IDE (for ESP32 programming)
-  - Python 3.12.4
+  - Python 3.12
   - Mosquitto MQTT Broker
-  - Node-Red
   - InfluxDB
   - Grafana
-  - Node.js (for front-end development, optional)
+  - HTML,CSS, JS
 - **Libraries**:
-  - Arduino: `PubSubClient`, `Adafruit_SHT4X`, `Servo`
-  - Python: `paho-mqtt`, `influxdb-client`, `requests`, `flask`
+  - Arduino: WiFi, WebServer, PubSubClient, ArduinoJson, DHT, ESP32Servo
+  - Python: pandas, joblib, time, requests, os, datetime, flask, influxdb, numpy, traceback
 
 ## Installation and Setup
 
 ### 1. Edge Setup
 - **Install Arduino IDE** and add ESP32 board support.
 - **Connect Hardware**:
-  - Wire SHT4X to ESP32 I2C pins.
-  - Connect PIR sensor to GPIO 4.
-  - Connect LDR to GPIO 34.
-  - Attach servo to GPIO 13 and LED to GPIO 2.
+  - Connect PIR sensor to GPIO 25.
+  - Connect DHT sensor to GPIO 33.
+  - Connect LDR (Photoresistor) to GPIO 34 for digital read and GPIO 32 for analog read.
+  - Attach servo to GPIO 27 and LED to GPIO 26.
 - **Upload Code**:
   - Open `esp.ino` in Arduino IDE.
-  - Update `WIFI_SSID`, `WIFI_PASSWORD`, and `MQTT_SERVER` with your details.
+  - Update `ssid`, `password`, and `mqtt_server` with your WiFi and MQTT broker details.
   - Compile and upload to ESP32.
 
 ### 2. Cloud Setup
@@ -102,7 +101,7 @@ The architecture is divided into three layers:
 - **AI Integration**:
   - Implement a reinforcement learning model (e.g., using `scikit-learn` or TensorFlow) and integrate it into the cloud script.
 
-### 3. Front End Setup
+### 3. Front End and Python Backend Setup
 - **Install Dependencies**:
   - Python 3.12.4 is used.
   - pip install any libraries that you found missing.
