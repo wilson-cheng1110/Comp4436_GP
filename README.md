@@ -14,7 +14,7 @@ The architecture is divided into three layers:
 ### 1. Edge
 - **MCU Used**: ESP32
 - **Input**:
-  - Temperature/Humidity Sensor: SHT4X
+  - Temperature/Humidity Sensor: DHT11
   - Light Intensity Sensor: 
   - PIR Sensor: HC-SR501
 - **Output Control**:
