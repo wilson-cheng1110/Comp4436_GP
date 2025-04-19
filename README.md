@@ -26,6 +26,8 @@ The architecture is divided into three layers:
 - **MQTT Broker**: Mosquitto
   - Handles MQTT communication between Edge and Cloud.
   - Transmits commands and receives sensor data.
+- **Node-Red**:
+  - Read the data from MQTT and save it into the InfulxDB.
 - **InfluxDB**:
   - Stores real-time sensor data (temperature, humidity, light, motion).
   - Maintains historical data (curtain and LED state, user preferences collected from the front end).
