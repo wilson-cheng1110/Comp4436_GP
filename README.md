@@ -79,13 +79,16 @@ The architecture is divided into three layers:
   - Connect LDR to GPIO 34.
   - Attach servo to GPIO 13 and LED to GPIO 2.
 - **Upload Code**:
-  - Open `edge/edge.ino` in Arduino IDE.
+  - Open `esp.ino` in Arduino IDE.
   - Update `WIFI_SSID`, `WIFI_PASSWORD`, and `MQTT_SERVER` with your details.
   - Compile and upload to ESP32.
 
 ### 2. Cloud Setup
 - **Install Mosquitto**:
   - Follow instructions at [Mosquitto Documentation](https://mosquitto.org/download/) to set up an MQTT broker.
+- **Set Up NodeRed**:
+  - Install NodeRed over at: [NodeRed Download](https://nodered.org/docs/getting-started/local)
+  - Import the flow of [nodeRedFLOW.json](https://github.com/wilson-cheng1110/Comp4436_GP/blob/main/nodeRedFLOW.json)
 - **Set Up InfluxDB**:
   - Install InfluxDB and create a bucket named `smart_home`.
   - Update `INFLUXDB_URL`, `INFLUXDB_TOKEN`, and `INFLUXDB_ORG` in `cloud/cloud.py`.
@@ -98,12 +101,14 @@ The architecture is divided into three layers:
 
 ### 3. Front End Setup
 - **Install Dependencies**:
-  - Install Node.js and run `npm install` if using a Node-based front end.
+  - Python 3.12.4 is used.
+  - pip install any libraries that you found missing.
 - **Run RESTful API**:
   - Install Flask: `pip install flask`.
   - Run `front_end/api.py` with updated MQTT broker IP.
 - **Access Dashboard**:
-  - Open `front_end/index.html` in a web browser or serve it via a local server.
+  - Run `frontEnd.py` in python to host a dashboard server.
+  - Access it using localhost:5000
   - Configure Grafana to connect to InfluxDB for historical data visualization.
 
 ## Usage
